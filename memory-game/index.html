@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Game</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            margin-top: 20px;
+        }
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(6, 60px);
+            grid-gap: 5px;
+            margin-top: 20px;
+        }
+        .peg {
+            width: 60px;
+            height: 60px;
+            background-color: lightgray;
+            border: 1px solid #333;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .peg.revealed {
+            background-color: white;
+            pointer-events: none;
+        }
+        #die {
+            width: 60px;
+            height: 60px;
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #333;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        #scoreboard {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Memory Game</h1>
+    <div id="game-board"></div>
+    <div id="die">Roll</div>
+    <div id="scoreboard">
+        <p>Player 1 Score: <span id="player1-score">0</span></p>
+        <p>Player 2 Score: <span id="player2-score">0</span></p>
+        <p>Current Player: <span id="current-player">1</span></p>
+    </div>
+    <script>
+        const colors = ['red', 'blue', 'yellow', 'green', 'pink', 'cyan'];
+        const pegs = [];
+        const gameBoard = document.getElementById('game-board');
+        const die = document.getElementById('die');
+        const player1ScoreElem = document.getElementById('player1-score');
+        const player2ScoreElem = document.getElementById('player2-score');
+        const currentPlayerElem = document.getElementById('current-player');
+        let currentColor = null;
+        let currentPlayer = 1;
+        let player1Score = 0;
+        let player2Score = 0;
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function createBoard() {
+            const colorArray = [];
+            for (let i = 0; i < 4; i++) {
+                for (let color of colors) {
+                    colorArray.push(color);
+                }
+            }
+            shuffle(colorArray);
+
+            for (let i = 0; i < 24; i++) {
+                const peg = document.createElement('div');
+                peg.className = 'peg';
+                peg.dataset.color = colorArray[i];
+                peg.dataset.index = i;
+                peg.addEventListener('click', () => revealPeg(peg));
+                gameBoard.appendChild(peg);
+                pegs.push(peg);
+            }
+        }
+
+        function revealPeg(peg) {
+            if (!currentColor) return;
+            if (peg.classList.contains('revealed')) return;
+            peg.style.backgroundColor = peg.dataset.color;
+            peg.classList.add('revealed');
+            if (peg.dataset.color === currentColor) {
+                if (currentPlayer === 1) {
+                    player1Score++;
+                    player1ScoreElem.textContent = player1Score;
+                } else {
+                    player2Score++;
+                    player2ScoreElem.textContent = player2Score;
+                }
+                if (gameBoard.querySelectorAll('.peg:not(.revealed)').length === 0) {
+                    alert(`Game over! Player 1: ${player1Score}, Player 2: ${player2Score}. ${player1Score > player2Score ? 'Player 1' : 'Player 2'} wins!`);
+                } else {
+                    currentColor = colors[Math.floor(Math.random() * colors.length)];
+                    die.textContent = currentColor;
+                }
+            } else {
+                setTimeout(() => {
+                    peg.style.backgroundColor = 'lightgray';
+                    peg.classList.remove('revealed');
+                    currentPlayer = currentPlayer === 1 ? 2 : 1;
+                    currentPlayerElem.textContent = currentPlayer;
+                    currentColor = null;
+                    die.textContent = 'Roll';
+                }, 1000);
+            }
+        }
+
+        die.addEventListener('click', () => {
+            if (currentColor) return;
+            currentColor = colors[Math.floor(Math.random() * colors.length)];
+            die.textContent = currentColor;
+        });
+
+        createBoard();
+    </script>
+</body>
+</html>
